@@ -11,6 +11,7 @@ module Aws
       class Main
         attr_accessor :items
         attr_accessor :opts
+        attr_accessor :spec
 
         def initialize
           @items = {}
@@ -21,6 +22,7 @@ module Aws
           @opts = Slop.parse(help: true) do
             on :d, :directory=, 'The directory to look in', as: String
             on :o, :output=, 'The JSON file to output', as: String
+            on :s, :specification=, 'The specification to use when selecting components. A JSON or YAML file or JSON object', as: String
           end
 
           unless @opts[:directory]
@@ -28,43 +30,45 @@ module Aws
             exit
           end
 
-          load
+          load @opts[:specification]
 
           compiled = {
-              AWSTemplateFormatVersion: "2010-09-09",
-              Description:              "Description goes here",
+              AWSTemplateFormatVersion: '2010-09-09',
+              Description:              'Description goes here',
               Parameters:               @items['params'],
               Mappings:                 @items['mappings'],
               Resources:                @items['resources'],
               Outputs:                  @items['outputs'],
           }
 
-          output_file = @opts[:output] || "compiled.json"
+          output_file = @opts[:output] || 'compiled.json'
           puts
           puts "Writing compiled file to #{output_file}..."
           save(compiled, output_file)
 
           puts
-          puts "Validating compiled file..."
+          puts 'Validating compiled file...'
 
           validate(compiled)
 
           puts
-          puts "*** Compiled Successfully ***"
+          puts '*** Compiled Successfully ***'
         end
 
         def validate(compiled)
-          names = compiled["Resources"].keys + compiled["Parameters"].keys
+          raise 'No resources!?' unless compiled[:Resources]
+          raise 'No parameters!?' unless compiled[:Parameters]
+          names = compiled[:Resources].keys + compiled[:Parameters].keys
           refs = find_refs(compiled).select { |a| !(a =~ /^AWS::/) }
 
           unless (refs-names).empty?
-            puts "!!! Unknown references !!!"
+            puts '!!! Unknown references !!!'
             (refs-names).each do |name|
               puts "  #{name}"
             end
             abort!
           end
-          puts "  References validated"
+          puts '  References validated'
         end
 
         def save(compiled, output_file)
@@ -72,23 +76,50 @@ module Aws
             File.open output_file, 'w' do |f|
               f.write JSON.pretty_generate(compiled)
             end
-            puts "  Compiled file written."
+            puts '  Compiled file written.'
           rescue
             puts "!!! Could not write compiled file: #{$!}"
             abort!
           end
         end
 
-        def load
+        def load(spec=nil)
+          if spec
+            begin
+              abs = File.absolute_path(File.expand_path(spec))
+              unless File.exists?(abs)
+                abs = File.absolute_path(File.expand_path(File.join(@opts[:directory],spec)))
+              end
+            rescue
+              # pass
+            end
+            if File.exists?(abs)
+              raise "Unsupported specification file type" unless abs =~ /\.(json|ya?ml)\z/i
+
+              puts "Loading specification #{abs}..."
+              spec = File.read(abs)
+
+              case File.extname(File.basename(abs)).downcase
+                when /json/
+                  spec = JSON.parse(spec)
+                when /yaml/
+                  spec = YAML.load(spec)
+                else
+                  raise "Unsupported file type for specification: #{spec}"
+              end
+            else
+              raise "Unable to open specification: #{abs}"
+            end
+          end
           %w{params mappings resources outputs}.each do |dir|
-            load_dir(dir)
+            load_dir(dir,spec)
           end
         end
 
         protected
 
         def abort!
-          puts "!!! Aborting !!!"
+          puts '!!! Aborting !!!'
           exit
         end
 
@@ -98,7 +129,7 @@ module Aws
             hash.keys.collect do |key|
               if %w{Ref SourceSecurityGroupName CacheSecurityGroupNames SecurityGroupNames}.include? key
                 hash[key]
-              elsif "Fn::GetAtt" == key
+              elsif 'Fn::GetAtt' == key
                 hash[key].first
               else
                 find_refs(hash[key])
@@ -109,11 +140,17 @@ module Aws
           end
         end
 
-        def load_dir(dir)
+        def load_dir(dir,spec=nil)
           puts "Loading #{dir}..."
           @items[dir] = {}
+          raise "No such directory: #{@opts[:directory]}" unless File.directory?(@opts[:directory])
           (Dir[File.join(@opts[:directory], "#{dir}.*")] | Dir[File.join(@opts[:directory], dir, "**", "*")]).collect do |filename|
             next unless filename =~ /\.(json|ya?ml)\z/i
+            if spec and spec[dir]
+              base = File.basename(filename).gsub(%r/\.(rb|yaml)/, '')
+              next unless spec[dir].include?(base)
+              puts "\tUsing #{dir}/#{base}"
+            end
             begin
               puts "  reading #{filename}"
               content = File.read(filename)
