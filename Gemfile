@@ -1,6 +1,4 @@
 source 'https://rubygems.org'
 
-gem "awesome_print"
-gem "slop"
-gem "psych"
-gem "json"
+# Specify your gem's dependencies in aws-cfn-compiler.gemspec
+gemspec

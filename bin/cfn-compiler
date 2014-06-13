@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+
+# require 'safe_yaml'
+# SafeYAML::OPTIONS[:default_mode] = :safe
+
+# Borrowing from "whiches" gem ...
+cmd  = 'json_pp'
+exes = []
+exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
+  exts.each { |ext|
+    exe = File.join(path, "#{cmd}#{ext}")
+    exes << exe if File.executable? exe
+  }
+end
+path = if exes.size > 0
+         File.dirname(exes[0])
+       else
+         File.dirname(__FILE__)
+       end
+
+add_path = File.expand_path(File.join(path, "..", "lib"))
+$:.unshift(add_path)
+
+require 'aws/cfn/compiler'
+Aws::Cfn::Compiler::run
