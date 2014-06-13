@@ -17,12 +17,14 @@ module Aws
           @items = {}
         end
 
-        def run ()
+        def run
 
           @opts = Slop.parse(help: true) do
             on :d, :directory=, 'The directory to look in', as: String
             on :o, :output=, 'The JSON file to output', as: String
             on :s, :specification=, 'The specification to use when selecting components. A JSON or YAML file or JSON object', as: String
+            on :f, :formatversion=, 'The AWS Template format version. Default 2010-09-09', as: String
+            on :t, :description=, "The AWS Template description. Default: output basename or #{File.basename(__FILE__,'.rb')}", as: String
           end
 
           unless @opts[:directory]
@@ -32,9 +34,13 @@ module Aws
 
           load @opts[:specification]
 
+          desc = @opts[:output] ? File.basename(@opts[:output]).gsub(%r/\.(json|yaml)/, '') : File.basename(__FILE__,'.rb')
+          if @spec and @spec['description']
+            desc = @spec['description']
+          end
           compiled = {
-              AWSTemplateFormatVersion: '2010-09-09',
-              Description:              'Description goes here',
+              AWSTemplateFormatVersion: (@opts[:formatversion].nil? ? '2010-09-09' : @opts[:formatversion]),
+              Description:              (@opts[:description].nil? rescue desc ),
               Parameters:               @items['params'],
               Mappings:                 @items['mappings'],
               Resources:                @items['resources'],
@@ -94,7 +100,7 @@ module Aws
               # pass
             end
             if File.exists?(abs)
-              raise "Unsupported specification file type" unless abs =~ /\.(json|ya?ml)\z/i
+              raise 'Unsupported specification file type' unless abs =~ /\.(json|ya?ml)\z/i
 
               puts "Loading specification #{abs}..."
               spec = File.read(abs)
@@ -107,6 +113,7 @@ module Aws
                 else
                   raise "Unsupported file type for specification: #{spec}"
               end
+              @spec = spec
             else
               raise "Unable to open specification: #{abs}"
             end
