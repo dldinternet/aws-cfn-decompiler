@@ -40,7 +40,7 @@ module Aws
           end
           compiled = {
               AWSTemplateFormatVersion: (@opts[:formatversion].nil? ? '2010-09-09' : @opts[:formatversion]),
-              Description:              (@opts[:description].nil? rescue desc ),
+              Description:              (@opts[:description].nil? ? desc : @opts[:description]),
               Parameters:               @items['params'],
               Mappings:                 @items['mappings'],
               Resources:                @items['resources'],

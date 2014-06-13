@@ -21,7 +21,7 @@
     <orderEntry type="library" scope="PROVIDED" name="bundler (v1.6.2, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="json (v1.8.1, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="psych (v2.0.5, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="rake (v10.1.0, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rake (v10.3.2, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="slop (v3.5.0, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
   </component>
 </module>
