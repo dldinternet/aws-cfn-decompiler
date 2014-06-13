@@ -25,4 +25,4 @@ add_path = File.expand_path(File.join(path, "..", "lib"))
 $:.unshift(add_path)
 
 require 'aws/cfn/compiler'
-Aws::Cfn::Compiler::run
+Aws::Cfn::Compiler::Main.new().run
