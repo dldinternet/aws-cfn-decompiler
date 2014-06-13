@@ -6,9 +6,9 @@
   <component name="FacetManager">
     <facet type="gem" name="Ruby Gem">
       <configuration>
-        <option name="GEM_APP_ROOT_PATH" value="$MODULE_DIR$" />
+        <option name="GEM_APP_ROOT_PATH" value="" />
         <option name="GEM_APP_TEST_PATH" value="" />
-        <option name="GEM_APP_LIB_PATH" value="$MODULE_DIR$/lib" />
+        <option name="GEM_APP_LIB_PATH" value="" />
       </configuration>
     </facet>
   </component>
@@ -18,6 +18,7 @@
     <orderEntry type="jdk" jdkName="RVM: ruby-1.9.3-p547 [aws-cfn-compile]" jdkType="RUBY_SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="awesome_print (v1.2.0, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="aws-cfn-compiler (v0.0.7, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="bundler (v1.6.2, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="json (v1.8.1, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="psych (v2.0.5, RVM: ruby-1.9.3-p547 [aws-cfn-compile]) [gem]" level="application" />
