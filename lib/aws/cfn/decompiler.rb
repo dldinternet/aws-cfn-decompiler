@@ -61,6 +61,8 @@ module Aws
               file = "#{name}.#{format}"
               path = File.join(dir,file)
 
+              hash = {  name => value }
+
               begin
                 File.delete path if File.exists? path
                 File.open path, 'w' do |f|
@@ -68,7 +70,7 @@ module Aws
                     when /json/
                       f.write JSON.pretty_generate(compiled)
                     when /yaml/
-                      f.write value.to_yaml line_width: 1024, indentation: 4, canonical: false
+                      f.write hash.to_yaml line_width: 1024, indentation: 4, canonical: false
                     else
                       raise "Unsupported format #{format}. Should have noticed this earlier!"
                   end
