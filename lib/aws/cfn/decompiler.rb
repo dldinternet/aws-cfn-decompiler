@@ -50,39 +50,60 @@ module Aws
 
         def save(output_dir)
 
+          specification = {}
           format = @opts[:format] rescue 'yaml'
-          %w( Mappings Parameters Resources Outputs ).each do |section|
-
-            @items[section].each do |name,value|
-              dir  = File.join(output_dir,section.to_s)
-              unless File.directory?(dir)
-                Dir.mkdir(dir)
-              end
-              file = "#{name}.#{format}"
-              path = File.join(dir,file)
-
-              hash = {  name => value }
-
-              begin
-                # File.delete path if File.exists? path
-                File.open path, File::CREAT|File::TRUNC|File::RDWR, 0644 do |f|
-                  case format
-                    when /json/
-                      f.write JSON.pretty_generate(compiled)
-                    when /yaml/
-                      f.write hash.to_yaml line_width: 1024, indentation: 4, canonical: false
-                    else
-                      raise "Unsupported format #{format}. Should have noticed this earlier!"
+          @items.each do |section, section_items|
+            case section
+              when /Mappings|Parameters|Resources|Outputs/
+                specification[section] = []
+                section_items.each do |name,value|
+                  dir  = File.join(output_dir,section.to_s)
+                  unless File.directory?(dir)
+                    Dir.mkdir(dir)
                   end
-                  f.close
+                  file = "#{name}.#{format}"
+                  hash = {  name => value }
+
+                  save_section(dir, file, format, section, hash)
+                  specification[section] << name
                 end
-                puts "  decompiled #{section}/#{file}."
-              rescue
-                puts "!!! Could not write compiled file #{path}: #{$!}"
-                abort!
-              end
+              when /AWSTemplateFormatVersion|Description/
+                specification[section] = section_items
+              else
+                raise "ERROR: Unsupported section '#{section}' in template"
             end
 
+          end
+
+          # Save specification
+          unless @opts[:specification].nil?
+            dir = File.dirname(@opts[:specification])
+            dir = output_dir unless dir
+            save_section(dir, File.basename(@opts[:specification]), format, '', specification, "Specification to #{dir}/")
+          end
+
+        end
+
+        def save_section(dir, file, format, section, hash, join='/')
+          path = File.join(dir, file)
+
+          begin
+            # File.delete path if File.exists? path
+            File.open path, File::CREAT|File::TRUNC|File::RDWR, 0644 do |f|
+              case format
+                when /json/
+                  f.write JSON.pretty_generate(compiled)
+                when /yaml/
+                  f.write hash.to_yaml line_width: 1024, indentation: 4, canonical: false
+                else
+                  raise "Unsupported format #{format}. Should have noticed this earlier!"
+              end
+              f.close
+            end
+            puts "  decompiled #{section}#{join}#{file}."
+          rescue
+            puts "!!! Could not write compiled file #{path}: #{$!}"
+            abort!
           end
         end
 
