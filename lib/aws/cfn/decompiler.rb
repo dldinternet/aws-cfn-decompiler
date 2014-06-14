@@ -51,7 +51,7 @@ module Aws
         def save(output_dir)
 
           format = @opts[:format] rescue 'yaml'
-          [ :Mappings, :Parameters, :Resources, :Outputs ].each do |section|
+          %w( Mappings Parameters Resources Outputs ).each do |section|
 
             @items[section].each do |name,value|
               dir  = File.join(output_dir,section.to_s)
@@ -64,8 +64,8 @@ module Aws
               hash = {  name => value }
 
               begin
-                File.delete path if File.exists? path
-                File.open path, 'w' do |f|
+                # File.delete path if File.exists? path
+                File.open path, File::CREAT|File::TRUNC|File::RDWR, 0644 do |f|
                   case format
                     when /json/
                       f.write JSON.pretty_generate(compiled)
@@ -105,12 +105,7 @@ module Aws
                 else
                   raise "Unsupported file type for specification: #{file}"
               end
-              #@items = template
-
-              template.each {|key,val|
-                @items[key.to_sym] = val
-              }
-
+              @items = template
             else
               raise "Unable to open template: #{abs}"
             end
