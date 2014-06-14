@@ -1,4 +1,5 @@
 require "aws/cfn/decompiler/version"
+require "aws/cfn/compiler"
 
 require 'json'
 require 'ap'
@@ -9,93 +10,108 @@ module Aws
   module Cfn
     module DeCompiler
       class Main < Aws::Cfn::Compiler::Main
+        attr_accessor :template
+
         def run
 
-          @opts = Slop.parse(help: true) do
-            on :d, :directory=, 'The directory to look in', as: String
-            on :o, :output=, 'The JSON file to output', as: String
-            on :s, :specification=, 'The specification to use when selecting components. A JSON or YAML file or JSON object', as: String
-            on :f, :formatversion=, 'The AWS Template format version. Default 2010-09-09', as: String
-            on :t, :description=, "The AWS Template description. Default: output basename or #{File.basename(__FILE__,'.rb')}", as: String
+          @opts = Slop.parse(help: true, strict: true) do
+            on :j, :template=, 'The template to decompile', as: String
+            on :o, :output=, 'The directory to output the components to.', as: String
+            on :f, :format=, 'The output format of the components. [JSON|YAML]', as: String, match: %r/yaml|json/i
+            on :s, :specification=, 'The specification file to create.', as: String
           end
 
-          unless @opts[:directory]
+          unless @opts[:template]
             puts @opts
             exit
           end
-
-          load @opts[:specification]
-
-          desc = @opts[:output] ? File.basename(@opts[:output]).gsub(%r/\.(json|yaml)/, '') : File.basename(__FILE__,'.rb')
-          if @spec and @spec['description']
-            desc = @spec['description']
-          end
-          compiled = {
-              AWSTemplateFormatVersion: (@opts[:formatversion].nil? ? '2010-09-09' : @opts[:formatversion]),
-              Description:              (@opts[:description].nil? ? desc : @opts[:description]),
-              Parameters:               @items['params'],
-              Mappings:                 @items['mappings'],
-              Resources:                @items['resources'],
-              Outputs:                  @items['outputs'],
-          }
-
-          output_file = @opts[:output] || 'compiled.json'
-          puts
-          puts "Writing compiled file to #{output_file}..."
-          save(compiled, output_file)
-
-          puts
-          puts 'Validating compiled file...'
-
-          validate(compiled)
-
-          puts
-          puts '*** Compiled Successfully ***'
-        end
-
-        def save(compiled, output_file)
-          begin
-            File.open output_file, 'w' do |f|
-              f.write JSON.pretty_generate(compiled)
+          unless @opts[:output].nil?
+            unless File.directory?(@opts[:output])
+              puts @opts
+              exit
             end
-            puts '  Compiled file written.'
-          rescue
-            puts "!!! Could not write compiled file: #{$!}"
-            abort!
+          end
+
+          load @opts[:template]
+
+          puts
+          puts 'Validating decompiled file...'
+
+          validate(@items)
+
+          output_dir = @opts[:output] || Dir.pwd
+          puts
+          puts "Writing decompiled parts to #{output_dir}..."
+          save(output_dir)
+
+          puts
+          puts '*** Decompiled Successfully ***'
+        end
+
+        def save(output_dir)
+
+          format = @opts[:format] rescue 'yaml'
+          [ :Mappings, :Parameters, :Resources, :Outputs ].each do |section|
+
+            @items[section].each do |name,value|
+              dir  = File.join(output_dir,section.to_s)
+              unless File.directory?(dir)
+                Dir.mkdir(dir)
+              end
+              file = "#{name}.#{format}"
+              path = File.join(dir,file)
+
+              begin
+                File.delete path if File.exists? path
+                File.open path, 'w' do |f|
+                  case format
+                    when /json/
+                      f.write JSON.pretty_generate(compiled)
+                    when /yaml/
+                      f.write value.to_yaml line_width: 1024, indentation: 4, canonical: false
+                    else
+                      raise "Unsupported format #{format}. Should have noticed this earlier!"
+                  end
+                  f.close
+                end
+                puts "  decompiled #{section}/#{file}."
+              rescue
+                puts "!!! Could not write compiled file #{path}: #{$!}"
+                abort!
+              end
+            end
+
           end
         end
 
-        def load(spec=nil)
-          if spec
+        def load(file=nil)
+          if file
             begin
-              abs = File.absolute_path(File.expand_path(spec))
-              unless File.exists?(abs)
-                abs = File.absolute_path(File.expand_path(File.join(@opts[:directory],spec)))
+              abs = File.absolute_path(File.expand_path(file))
+              unless File.exists?(abs) or @opts[:output].nil?
+                abs = File.absolute_path(File.expand_path(File.join(@opts[:output],file)))
               end
             rescue
               # pass
             end
             if File.exists?(abs)
-              raise 'Unsupported specification file type' unless abs =~ /\.(json|ya?ml)\z/i
-
-              puts "Loading specification #{abs}..."
-              spec = File.read(abs)
-
               case File.extname(File.basename(abs)).downcase
                 when /json/
-                  spec = JSON.parse(spec)
+                  template = JSON.parse(File.read(abs))
                 when /yaml/
-                  spec = YAML.load(spec)
+                  template = YAML.load(File.read(abs))
                 else
-                  raise "Unsupported file type for specification: #{spec}"
+                  raise "Unsupported file type for specification: #{file}"
               end
-              @spec = spec
+              #@items = template
+
+              template.each {|key,val|
+                @items[key.to_sym] = val
+              }
+
             else
-              raise "Unable to open specification: #{abs}"
+              raise "Unable to open template: #{abs}"
             end
-          end
-          %w{params mappings resources outputs}.each do |dir|
-            load_dir(dir,spec)
           end
         end
 
