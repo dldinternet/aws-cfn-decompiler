@@ -15,48 +15,57 @@ module Aws
 
           specification = {}
           format = @opts[:format] rescue 'yaml'
-          @items.each do |section, section_items|
-            case section
-              when /Mappings|Parameters|Resources|Outputs/
-                specification[section] = []
-                section_items.each do |name,value|
-                  dir  = File.join(output_dir,section.to_s)
-                  unless File.directory?(dir)
-                    Dir.mkdir(dir)
-                  end
-                  file = "#{name}.#{format}"
-                  hash = {  name => value }
+          if format.match(%r'^ruby|rb$')
+            pprint_cfn_template simplify(@items)
+          else
+            @items.each do |section, section_items|
+              case section
+                when /Mappings|Parameters|Resources|Outputs/
+                  specification[section] = []
+                  section_items.each do |name,value|
+                    dir  = File.join(output_dir,section.to_s)
+                    unless File.directory?(dir)
+                      Dir.mkdir(dir)
+                    end
+                    file = "#{name}.#{format}"
+                    hash = {  name => value }
 
-                  save_section(dir, file, format, section, hash)
-                  specification[section] << name
-                end
-              when /AWSTemplateFormatVersion|Description/
-                specification[section] = section_items
-              else
-                raise "ERROR: Unsupported section '#{section}' in template"
+                    save_section(dir, file, format, section, hash)
+                    specification[section] << name
+                  end
+                when /AWSTemplateFormatVersion|Description/
+                  specification[section] = section_items
+                else
+                  abort! "Unsupported section '#{section}' in template"
+              end
+
             end
 
-          end
-
-          # Save specification
-          unless @opts[:specification].nil?
-            dir = File.dirname(@opts[:specification])
-            dir = output_dir unless dir
-            save_section(dir, File.basename(@opts[:specification]), format, '', specification, "Specification to #{dir}/")
+            # Save specification
+            unless @opts[:specification].nil?
+              dir = File.dirname(@opts[:specification])
+              dir = output_dir unless dir
+              save_section(dir, File.basename(@opts[:specification]), format, '', specification, "Specification to #{dir}/")
+            end
           end
 
         end
 
         def save_section(dir, file, format, section, hash, join='/')
+          logStep "Saving section #{hash.keys[0]} to #{section}/#{file} "
           path = File.join(dir, file)
 
           begin
             # File.delete path if File.exists? path
             File.open path, File::CREAT|File::TRUNC|File::RDWR, 0644 do |f|
               case format
-                when /json/
-                  f.write JSON.pretty_generate(compiled)
-                when /yaml/
+                when /ruby|rb/
+                  @output.unshift f
+                  pprint(hash)
+                  @output.shift
+                when /json|js/
+                  f.write JSON.pretty_generate(hash)
+                when /yaml|yml/
                   f.write hash.to_yaml line_width: 1024, indentation: 4, canonical: false
                 else
                   raise "Unsupported format #{format}. Should have noticed this earlier!"
@@ -70,18 +79,9 @@ module Aws
           end
         end
 
-        def decompile(file=nil)
-          load file
-
-          puts
-          puts 'Validating decompiled file...'
-
-          validate(@items)
-
-        end
-
         def load(file=nil)
           if file
+            logStep "Loading #{file}"
             begin
               abs = File.absolute_path(File.expand_path(file))
               unless File.exists?(abs) or @opts[:output].nil?
@@ -92,16 +92,15 @@ module Aws
             end
             if File.exists?(abs)
               case File.extname(File.basename(abs)).downcase
-                when /json/
-                  template = JSON.parse(File.read(abs))
-                when /yaml/
-                  template = YAML.load(File.read(abs))
+                when /json|js/
+                  @items = JSON.parse(File.read(abs))
+                when /yaml|yml/
+                  @items = YAML.load(File.read(abs))
                 else
-                  raise "Unsupported file type for specification: #{file}"
+                  abort! "Unsupported file type for specification: #{file}"
               end
-              @items = template
             else
-              raise "Unable to open template: #{abs}"
+              abort! "Unable to open template: #{abs}"
             end
           end
         end
