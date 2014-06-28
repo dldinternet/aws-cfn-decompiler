@@ -11,7 +11,7 @@ module Aws
       class Base < ::Aws::Cfn::Compiler::Base
         attr_accessor :template
 
-        def save(output_dir)
+        def save_dsl(output_dir)
 
           specification = {}
           format = @opts[:format] rescue 'yaml'
@@ -47,7 +47,7 @@ module Aws
           unless @opts[:specification].nil?
             dir = File.dirname(@opts[:specification])
             dir = output_dir unless dir
-            save_section(dir, File.basename(@opts[:specification]), format, '', specification, "Specification to #{dir}/")
+            save_section(dir, File.basename(@opts[:specification]), format, '', specification, "Specification in #{dir}/")
           end
 
         end

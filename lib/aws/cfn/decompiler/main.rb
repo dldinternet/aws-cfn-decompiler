@@ -26,7 +26,12 @@ module Aws
                                 else
                                   false
                                 end
-          @config[:functions] = @opts[:functions].downcase.match %r'^(1|true|on|yes|enable|set)$'
+          @config[:functions] = if @opts[:functions]
+                                  (not @opts[:functions].downcase.match(%r'^(1|true|on|yes|enable|set)$').nil?)
+                                else
+                                  false
+                                end
+          @config[:directory] = @opts[:output]
 
           unless @opts[:template]
             @logger.error @opts
@@ -43,12 +48,12 @@ module Aws
             end
           end
 
-          load @opts[:template]
+          load_template @opts[:template]
 
           validate(@items)
 
           output_dir = @opts[:output] || Dir.pwd
-          save(output_dir)
+          save_dsl(output_dir)
 
           @logger.step '*** Decompiled Successfully ***'
         end
