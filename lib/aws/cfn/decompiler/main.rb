@@ -18,8 +18,14 @@ module Aws
             on :f, :format=,        'The output format of the components. [JSON|YAML|Ruby]', as: String, match: %r/ruby|rb|yaml|yml|json|js/i
             on :s, :specification=, 'The specification file to create.', as: String
             on :n, :functions=,     'Enable function use.', as: String, match: %r/0|1|yes|no|on|off|enable|disable|set|unset|true|false|raw/i
+            on :O, :overwrite,      'Overwrite existing generated source files. (HINT: Think twice ...)', { as: String, optional_argument: true, default: 'off', match: %r/0|1|yes|no|on|off|enable|disable|set|unset|true|false|raw/i }
           end
 
+          @config[:overwrite] = if @opts[:overwrite].downcase.match %r'^(1|true|on|yes|enable|set)$'
+                                  true
+                                else
+                                  false
+                                end
           @config[:functions] = @opts[:functions].downcase.match %r'^(1|true|on|yes|enable|set)$'
 
           unless @opts[:template]
