@@ -22,6 +22,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'psych'
   spec.add_dependency 'json'
   spec.add_dependency 'slop'
-  spec.add_dependency 'aws-cfn-compiler', '>= 0.8.0', '~> 0.8'
+  spec.add_dependency 'aws-cfn-compiler', '>= 0.8.0'
 
 end
