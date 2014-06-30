@@ -18,10 +18,10 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "awesome_print", '~> 1.2', '>= 1.2.0'
-  spec.add_dependency "psych"
-  spec.add_dependency "json"
-  spec.add_dependency "slop"
-  spec.add_dependency 'aws-cfn-compiler', '>= 0.5.0', '~> 0.5'
+  spec.add_dependency 'awesome_print', '~> 1.2', '>= 1.2.0'
+  spec.add_dependency 'psych'
+  spec.add_dependency 'json'
+  spec.add_dependency 'slop'
+  spec.add_dependency 'aws-cfn-compiler', '>= 0.7.0', '~> 0.7'
 
 end

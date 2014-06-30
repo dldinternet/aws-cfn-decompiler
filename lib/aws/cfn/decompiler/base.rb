@@ -11,15 +11,18 @@ module Aws
       class Base < ::Aws::Cfn::Compiler::Base
         attr_accessor :template
 
-        def save_dsl(output_dir)
+        require "aws/cfn/decompiler/mixins/options"
+        include Aws::Cfn::DeCompiler::Options
+
+        def save_dsl(output_dir, decompiled=@items)
 
           specification = {}
-          format = @opts[:format] rescue 'yaml'
+          format = @config[:format] rescue 'yaml'
           ruby   = (not format.match(%r'^ruby|rb$').nil?)
           if ruby
-            pprint_cfn_template simplify(@items)
+            pprint_cfn_template simplify(decompiled)
           end
-          @items.each do |section, section_items|
+          decompiled.each do |section, section_items|
             case section
               when /Mappings|Parameters|Resources|Outputs/
                 specification[section] = []
@@ -44,44 +47,15 @@ module Aws
           end
 
           # Save specification
-          unless @opts[:specification].nil?
-            dir = File.dirname(@opts[:specification])
+          unless @config[:specification].nil?
+            dir = File.dirname(@config[:specification])
             dir = output_dir unless dir
-            save_section(dir, File.basename(@opts[:specification]), format, '', specification, "Specification in #{dir}/")
+            save_section(dir, File.basename(@config[:specification]), format, '', specification, '', "specification")
           end
 
         end
 
         protected
-
-        def save_section(dir, file, format, section, hash, join='/')
-          logStep "Saving section #{hash.keys[0]} to #{section}/#{file} "
-          path = File.join(dir, file)
-
-          begin
-            if i_am_maintainer(path)
-              # File.delete path if File.exists? path
-              File.open path, File::CREAT|File::TRUNC|File::RDWR, 0644 do |f|
-                case format
-                  when /ruby|rb|yaml|yml/
-                    f.write maintainer_comment('')
-                    f.write hash.to_yaml line_width: 1024, indentation: 4, canonical: false
-                  when /json|js/
-                    # You wish ... f.write maintainer_comment('')
-                    f.write JSON.pretty_generate(hash)
-                  else
-                    abort! "Internal: Unsupported format #{format}. Should have noticed this earlier!"
-                end
-                f.close
-              end
-              @logger.info "  decompiled #{section}#{join}#{file}."
-            else
-              @logger.warn "  Did not overwrite #{section}#{join}#{file}."
-            end
-          rescue
-            abort! "!!! Could not write compiled file #{path}: #{$!}"
-          end
-        end
 
       end
     end
