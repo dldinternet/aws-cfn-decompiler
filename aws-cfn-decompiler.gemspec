@@ -23,5 +23,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'json'
   spec.add_dependency 'slop'
   spec.add_dependency 'aws-cfn-compiler', '>= 0.8.0'
+  spec.add_dependency 'dldinternet-mixlib-logging', '>= 0.3.0'
 
 end
