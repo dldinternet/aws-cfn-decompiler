@@ -22,8 +22,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'psych'
   spec.add_dependency 'json'
   spec.add_dependency 'slop'
-  spec.add_dependency 'aws-cfn-compiler', '>= 0.9.1'
-  spec.add_dependency 'aws-cfn-dsl', '>= 0.9.1'
+  spec.add_dependency 'aws-cfn-compiler', '>= 0.9.5'
+  spec.add_dependency 'aws-cfn-dsl', '>= 0.9.4'
   spec.add_dependency 'dldinternet-mixlib-logging', '>= 0.4.0'
 
 end
