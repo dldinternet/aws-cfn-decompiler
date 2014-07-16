@@ -24,7 +24,7 @@ module Aws
           end
           decompiled.each do |section, section_items|
             case section
-              when /Mappings|Parameters|Resources|Outputs/
+              when /Mappings|Parameters|Conditions|Resources|Outputs/
                 specification[section] = []
                 section_items.each do |name,value|
                   unless ruby
