@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../aws-cfn-compiler/aws-cfn-compiler.iml" filepath="$PROJECT_DIR$/../aws-cfn-compiler/aws-cfn-compiler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/aws-cfn-decompiler.iml" filepath="$PROJECT_DIR$/aws-cfn-decompiler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../aws-cfn-dsl/aws-cfn-dsl.iml" filepath="$PROJECT_DIR$/../aws-cfn-dsl/aws-cfn-dsl.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../aws-cfn-stacker/aws-cfn-stacker.iml" filepath="$PROJECT_DIR$/../aws-cfn-stacker/aws-cfn-stacker.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../aws-cfn-yats/aws-cfn-yats.iml" filepath="$PROJECT_DIR$/../aws-cfn-yats/aws-cfn-yats.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../cloudformation-ruby-dsl/cloudformation-ruby-dsl.iml" filepath="$PROJECT_DIR$/../cloudformation-ruby-dsl/cloudformation-ruby-dsl.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../../Amplify/ws/section-31/devops/devops.iml" filepath="$PROJECT_DIR$/../../../../Amplify/ws/section-31/devops/devops.iml" />
+    </modules>
+  </component>
+</project>
+

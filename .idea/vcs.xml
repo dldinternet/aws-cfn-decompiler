@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/../../../../Amplify/ws/section-31/devops" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../Amplify/ws/section-31/devops/submodules/aws-cloudformation" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../aws-cfn-compiler" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../aws-cfn-dsl" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../aws-cfn-stacker" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../aws-cfn-yats" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../cloudformation-ruby-dsl" vcs="Git" />
+  </component>
+</project>
+
